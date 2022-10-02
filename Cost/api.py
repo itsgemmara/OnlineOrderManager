@@ -25,23 +25,23 @@ class CostViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['post', ])
     def name_search_filter(self, r):
-        response = filters.NameFilter(self.request.data, Cost)
-        return Response(response.name_search_filter(), status=200)
+        response = filters.Filter(self.request.data, Cost, 'name')
+        return Response(response.char_field(), status=200)
 
     @action(detail=False, methods=['post', ])
     def description_search_filter(self, r):
-        response = filters.description_search_filter(self.request.data, Cost)
-        return Response(response, status=200)
+        response = filters.Filter(self.request.data, Cost, 'description')
+        return Response(response.char_field(), status=200)
 
     @action(detail=False, methods=['post', ])
     def amount_search_filter(self, r):
-        response = filters.amount_search_filter(self.request.data, Cost)
-        return Response(response, status=200)
+        response = filters.Filter(self.request.data, Cost, 'amount')
+        return Response(response.integer_field_filter(), status=200)
 
     @action(detail=False, methods=['post', ])
     def date_search_filter(self, r):
-        response = filters.date_search_filter(self.request.data, Cost)
-        return Response(response, status=200)
+        response = filters.Filter(self.request.data, Cost, 'date')
+        return Response(response.date_field_filter(), status=200)
 
 
 class PeriodicCostViewSet(viewsets.ModelViewSet):
