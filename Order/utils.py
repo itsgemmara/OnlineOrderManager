@@ -4,8 +4,8 @@ from django.core.exceptions import ValidationError
 from .models import Menu, Table, Category
 
 
-def menu_choices_creator():
-    menus = Menu.objects.all()
+def choices_creator(model):
+    menus = model.objects.all()
     choices = list()
     for i in menus:
         item = (f'{i.name}', f'{i.name}')

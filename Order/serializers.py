@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
-from .utils import table_choices_creator, menu_choices_creator, category_choices_creator
-from .models import Order, Table, Pay
+from .utils import choices_creator
+from .models import Order, Table, Pay, Material, Menu, Product, Category
 
 
 class TableSerializer(serializers.ModelSerializer):
@@ -13,7 +13,7 @@ class TableSerializer(serializers.ModelSerializer):
 
 class UpdateTableIsPayedSerializer(serializers.ModelSerializer):
 
-    TABLE = table_choices_creator()
+    TABLE = choices_creator(Table)
     table = serializers.ChoiceField(choices=TABLE)
 
     class Meta:
@@ -23,7 +23,7 @@ class UpdateTableIsPayedSerializer(serializers.ModelSerializer):
 
 class UpdateTableIsActiveSerializer(serializers.Serializer):
 
-    TABLE = table_choices_creator()
+    TABLE = choices_creator(Table)
     table = serializers.ChoiceField(choices=TABLE)
 
     CHOICES = (("ac", "activate"), ('de', 'deactivate'))
@@ -32,17 +32,17 @@ class UpdateTableIsActiveSerializer(serializers.Serializer):
 
 class ChangeTableSerializer(serializers.Serializer):
 
-    CHOICES = table_choices_creator()
+    CHOICES = choices_creator(Table)
     from_table = serializers.ChoiceField(choices=CHOICES)
     to = serializers.ChoiceField(choices=CHOICES)
 
 
 class CreateOrderSerializer(serializers.ModelSerializer):
 
-    MENU = menu_choices_creator()
+    MENU = choices_creator(Menu)
     product = serializers.ChoiceField(choices=MENU)
 
-    TABLE = table_choices_creator()
+    TABLE = choices_creator(Table)
     table = serializers.ChoiceField(choices=TABLE)
 
     class Meta:
@@ -52,7 +52,7 @@ class CreateOrderSerializer(serializers.ModelSerializer):
 
 class UpdateOrderDesSerializer(serializers.ModelSerializer):
 
-    TABLE = table_choices_creator()
+    TABLE = choices_creator(Table)
     table = serializers.ChoiceField(choices=TABLE)
 
     class Meta:
@@ -81,20 +81,20 @@ class FilterOrderByTableSerializer(serializers.ModelSerializer):
 
 
 class SearchMenuFilterSerializer(serializers.Serializer):
-    MENU = list(menu_choices_creator())
+    MENU = list(choices_creator(Menu))
     MENU.append(('all', 'All'))
     source = serializers.ChoiceField(choices=tuple(MENU), required=False)
     search_key = serializers.CharField()
 
 
 class OrderFilterSerializer(serializers.Serializer):
-    MENU = list(menu_choices_creator())
+    MENU = list(choices_creator(Menu))
     MENU.append(('all', 'All'))
     product = serializers.ChoiceField(choices=tuple(MENU))
 
 
 class TableFilterSerializer(serializers.Serializer):
-    TABLE = list(table_choices_creator())
+    TABLE = list(choices_creator(Table))
     TABLE.append(('all', 'All Tables'))
     table = serializers.ChoiceField(choices=tuple(TABLE))
 
@@ -141,7 +141,36 @@ class TableFactorSerializer(serializers.ModelSerializer):
         model = Pay
         fields = ('table', 'Pay')
 
+
 class CategoryFilterSerializer(serializers.Serializer):
-    CHOICES = category_choices_creator()
+    CHOICES = choices_creator(Category)
     by = serializers.MultipleChoiceField(choices=CHOICES)
+
+
+class MaterialSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Material
+        fields = '__all__'
+
+
+class CreateProductSerializer(serializers.ModelSerializer):
+    MATERIAL = choices_creator(Material)
+    materials = serializers.MultipleChoiceField(choices=MATERIAL)
+
+    class Meta:
+        model = Product
+        fields = '__all__'
+
+    # def __init__(self, *args, **kwargs):
+    #     super(ProductSerializer, self).__init__(*args, **kwargs)
+    #     for item in self.material:
+    #         self.fields[item.name] = serializers.IntegerField(required=False)
+
+
+class ProductSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Product
+        fields = '__all__'
+
 

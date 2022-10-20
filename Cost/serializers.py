@@ -3,6 +3,17 @@ from rest_framework import serializers
 from .models import Cost, PeriodicCost, Income, PeriodicIncome
 from .utils import period_choices_creator
 
+REMINDER = (('one_hour', 'یک ساعت پیش از زمان پرداخت'),
+            ('three_hour', 'سه ساعت پیش از زمان پرداخت'),
+            ('one_day', 'یک روز پیش از زمان پرداخت'),
+            ('three_day', 'سه روز پیش از زمان پرداخت'),
+            ('one_week', 'یک هفته پیش از زمان پرداخت'),
+            ('two_week', 'دو هفته پیش از زمان پرداخت'),
+            ('one_month', 'یک ماه پیش از زمان پرداخت'),
+            ('three_month', 'سه ماه پیش از زمان پرداخت'),
+            ('six_month', 'شش ماه پیش از زمان پرداخت'),
+            ('one_year', 'یک سال پیش از زمان پرداخت'),)
+
 
 class CostSerializer(serializers.ModelSerializer):
     class Meta:
@@ -11,17 +22,14 @@ class CostSerializer(serializers.ModelSerializer):
 
 
 class PeriodicCostSerializer(serializers.ModelSerializer):
-    REMINDER = (('one_hour', 'یک ساعت پیش از زمان پرداخت'),
-                ('three_hour', 'سه ساعت پیش از زمان پرداخت'),
-                ('one_day', 'یک روز پیش از زمان پرداخت'),
-                ('three_day', 'سه روز پیش از زمان پرداخت'),
-                ('one_week', 'یک هفته پیش از زمان پرداخت'),
-                ('two_week', 'دو هفته پیش از زمان پرداخت'),
-                ('one_month', 'یک ماه پیش از زمان پرداخت'),
-                ('three_month', 'سه ماه پیش از زمان پرداخت'),
-                ('six_month', 'شش ماه پیش از زمان پرداخت'),
-                ('one_year', 'یک سال پیش از زمان پرداخت'),)
     reminder_of_Payment = serializers.MultipleChoiceField(choices=REMINDER)
+    class Meta:
+        model = PeriodicCost
+        fields = '__all__'
+
+
+class PeriodicCostListSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = PeriodicCost
         fields = '__all__'
@@ -46,7 +54,11 @@ class FilterSerializer(serializers.Serializer):
 
 class PeriodFilterSerializer(serializers.Serializer):
     PERIOD = period_choices_creator()
-    search_key = serializers.ChoiceField(choices=PERIOD)
+    filter_by = serializers.ChoiceField(choices=PERIOD)
+
+
+class ReminderFilterSerializer(serializers.Serializer):
+    filter_by = serializers.ChoiceField(choices=REMINDER)
 
 
 class AmountFilterSerializer(serializers.Serializer):

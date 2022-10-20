@@ -5,9 +5,9 @@ from rest_framework import viewsets
 from  django.core.exceptions import ValidationError
 
 from .serializers import *
-from .models import Order, Table, Menu, Category
+from .models import Order, Table, Menu, Category, Material, Product
 from .utils import create_factor
-from Filters import filters
+from Filters import filters, utils, serializers as filter_serializers
 
 
 class TableViewSet(viewsets.ModelViewSet):
@@ -148,7 +148,6 @@ class OrderViewSet(viewsets.ModelViewSet):
     """
 
     queryset = Order.objects.all()
-    serializer_class = CreateOrderSerializer
 
     def get_serializer_class(self):
         if self.action == 'set_order_is_payed':
@@ -162,9 +161,9 @@ class OrderViewSet(viewsets.ModelViewSet):
         elif self.action == 'product_search_filter':
             return OrderFilterSerializer
         elif self.action == 'is_ready_search_filter':
-            return IsReadyFilterSerializer
+            return filter_serializers.BooleanFilterSerializer
         elif self.action == 'is_payed_search_filter':
-            return IsPayedFilterSerializer
+            return filter_serializers.BooleanFilterSerializer
         elif self.action == 'table_search_filter':
             return TableFilterSerializer
         elif self.action == 'category_search_filter':
@@ -211,73 +210,54 @@ class OrderViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['post', ])
     def description_search_filter(self, r):
-        response = filters.name_search_filter(self.request.data,
-                                              Order, ['source', 'search_key'], SearchMenuFilterSerializer)
+        custom_filter = filters.BaseFilter(data=self.request.data, model=Order,
+                                           serializer_fields=['source', 'search_key'],
+                                           serializer=SearchMenuFilterSerializer)
+        parameters = custom_filter.create_parameters()
+        if parameters['source'] != 'all':
+            filter_dict = {'product': parameters['source'], 'description__contains': parameters['search_key']}
+        else:
+            filter_dict = {'description__contains': parameters['search_key']}
+        response = custom_filter.filter(filter_dict)
         return Response(response, status=200)
 
     @action(detail=False, methods=['post', ])
     def product_search_filter(self, r):
-        serializer = OrderFilterSerializer(data=self.request.data)
-        serializer.is_valid(raise_exception=True)
-        product = serializer.validated_data["product"]
-        if product == 'all':
-            filtering = Order.objects.all()
+        custom_filter = filters.BaseFilter(data=self.request.data, model=Order,
+                                           serializer_fields=["product"],
+                                           serializer=OrderFilterSerializer)
+        parameters = custom_filter.create_parameters()
+        if parameters['product'] != 'all':
+            filter_dict = {'product': parameters['product']}
+            response = custom_filter.filter(filter_dict)
         else:
-            filtering = Order.objects.filter(product=product)
-        response = list()
-        for i in filtering:
-            response.append(i.pk)
+            filtering = Order.objects.all()
+            response = utils.pk_response_creator(filtering)
         return Response(response, status=200)
 
     @action(detail=False, methods=['post', ])
     def table_search_filter(self, r):
-        serializer = TableFilterSerializer(data=self.request.data)
-        serializer.is_valid(raise_exception=True)
-        table = serializer.validated_data["table"]
-        if table == 'all':
-            filtering = Order.objects.all()
-        else:
-            filtering = Order.objects.filter(table=table)
-        response = list()
-        for i in filtering:
-            response.append(i.pk)
-        return Response(response, status=200)
+        response = filters.Filter(self.request.data, Order, 'table')
+        return Response(response.choice_field(TableFilterSerializer, ['table']), status=200)
 
     @action(detail=False, methods=['post', ])
     def is_ready_search_filter(self, r):
-        serializer = IsReadyFilterSerializer(data=self.request.data)
-        serializer.is_valid(raise_exception=True)
-        by = serializer.validated_data["by"]
-        if by == 'all':
-            filtering = Order.objects.all()
-        else:
-            filtering = Order.objects.filter(is_ready=by)
-        response = list()
-        for i in filtering:
-            response.append(i.pk)
-        return Response(response, status=200)
+        response = filters.Filter(self.request.data, Order, 'is_ready')
+        return Response(response.bool_field(), status=200)
 
     @action(detail=False, methods=['post', ])
     def is_payed_search_filter(self, r):
-        serializer = IsPayedFilterSerializer(data=self.request.data)
-        serializer.is_valid(raise_exception=True)
-        by = serializer.validated_data["by"]
-        if by == 'all':
-            filtering = Order.objects.all()
-        else:
-            filtering = Order.objects.filter(is_payed=bool(by))
-        response = list()
-        for i in filtering:
-            response.append(i.pk)
-        return Response(response, status=200)
+        response = filters.Filter(self.request.data, Order, 'is_payed')
+        return Response(response.bool_field(), status=200)
 
     @action(detail=False, methods=['post', ])
     def category_search_filter(self, r):
-        serializer = CategoryFilterSerializer(data=self.request.data)
-        serializer.is_valid(raise_exception=True)
-        by = serializer.validated_data["by"]
+        custom_filter = filters.BaseFilter(data=self.request.data, model=Order,
+                                           serializer_fields=["by"],
+                                           serializer=CategoryFilterSerializer)
+        parameters = custom_filter.create_parameters()
         response = list()
-        for category in by:
+        for category in parameters['by']:
             category = Category.objects.get(pk=int(category))
             menus = Menu.objects.filter(cat=category)
             for menu in menus:
@@ -346,3 +326,24 @@ class PayViewSet(mixins.RetrieveModelMixin,
         else:
             raise ValidationError('Selecting the pay field is required')
         return Response('done', status=200)
+
+
+class MaterialViewSet(viewsets.ModelViewSet):
+
+    queryset = Material.objects.all()
+    serializer_class = MaterialSerializer
+
+
+class ProductViewSet(viewsets.ModelViewSet):
+
+    queryset = Product.objects.all()
+    serializer_class = ProductSerializer
+
+    def get_serializer_class(self):
+        if self.action == 'create':
+            return CreateProductSerializer
+        return ProductSerializer
+
+    def get_serializer_context(self):
+        if self.action == 'material_details':
+            pass
