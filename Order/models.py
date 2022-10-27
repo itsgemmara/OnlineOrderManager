@@ -52,3 +52,24 @@ class Pay(models.Model):
 
     def __str__(self):
         return self.id
+
+
+class Material(models.Model):
+    name = models.CharField('نام', max_length=255, unique=True)
+    UNIT = (('one_gr', 'گرم'),
+            ('one_kg',  'کیلوگرم'),
+            ('one_spoon', 'قاشق'),
+            ('one_p', 'پیمانه'),
+            ('other', 'دیگر'),)
+    unit = models.CharField('واحد', max_length=20, choices=UNIT)
+    unit_price = models.FloatField('قیمت هر واحد به تومان', null=True, blank=True)
+    description = models.TextField('توضیحات', null=True, blank=True)
+
+    def __str__(self):
+        return self.name
+
+
+class Product(models.Model):
+    order = models.OneToOneField(Menu, on_delete=models.DO_NOTHING, verbose_name='نام سفارش')
+    materials = models.TextField('مواد لازم', )
+    description = models.TextField('طرز تهیه', null=True, blank=True)

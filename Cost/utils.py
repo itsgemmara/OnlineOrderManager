@@ -4,5 +4,6 @@ def period_choices_creator():
               ('month', 'هر ماه'),
               ('three_month', 'هر سه ماه'),
               ('six_month', 'هر شش ماه'),
-              ('year', 'هر سال'),)
+              ('year', 'هر سال'),
+              ('all', 'همه'),)
     return PERIOD

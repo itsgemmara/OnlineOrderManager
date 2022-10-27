@@ -17,8 +17,18 @@ class AmountFilterSerializer(serializers.Serializer):
     maximum = serializers.IntegerField(required=False, default=None)
 
 
-class DateFilterSerializer(serializers.Serializer):
+class IntervalDateFilterSerializer(serializers.Serializer):
     from_date = serializers.DateTimeField(required=False, default=None)
     to_date = serializers.DateTimeField(required=False, default=None)
 
+
+class DateFilterSerializer(serializers.Serializer):
+    date = serializers.DateField(required=False, default=None)
+
+
+class BooleanFilterSerializer(serializers.Serializer):
+    CHOICES = ((True, 'Yes'),
+               (False, 'No'),
+               ('all', 'All'),)
+    filter_by = serializers.ChoiceField(choices=CHOICES)
 
