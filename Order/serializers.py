@@ -18,7 +18,7 @@ class UpdateTableIsPayedSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Table
-        fields = ("is_payed", 'table', )
+        fields = ("is_active", 'table', )
 
 
 class UpdateTableIsActiveSerializer(serializers.Serializer):
@@ -96,7 +96,7 @@ class OrderFilterSerializer(serializers.Serializer):
 class TableFilterSerializer(serializers.Serializer):
     TABLE = list(choices_creator(Table))
     TABLE.append(('all', 'All Tables'))
-    table = serializers.ChoiceField(choices=tuple(TABLE))
+    table = serializers.ChoiceField(choices=tuple(TABLE)) 
 
 
 class IsReadyFilterSerializer(serializers.Serializer):
@@ -139,7 +139,7 @@ class TableFactorSerializer(serializers.ModelSerializer):
     pay = serializers.BooleanField(default=True)
     class Meta:
         model = Pay
-        fields = ('table', 'Pay')
+        fields = ('table', 'pay')
 
 
 class CategoryFilterSerializer(serializers.Serializer):

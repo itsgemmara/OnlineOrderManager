@@ -1,7 +1,51 @@
+import random
+import string
 from django.core.exceptions import ValidationError
-
+from django.db import models
+from django.db.models.fields import NOT_PROVIDED
+from django.utils import timezone
 
 from .models import Menu, Table, Category
+
+
+def test_model_object_creator(model):
+    fields = model._meta.get_fields()
+    data = dict()
+    red_list = list()
+    for field in fields:
+        if field.is_relation:
+            if field.auto_created:
+                continue
+            value = test_model_object_creator(field.related_model)
+        if field.name == 'id':
+            continue
+        if field.unique:
+            qs = model.objects.all()
+            red_list = list()
+            for obj in qs:
+                red_item = getattr(obj, f"{field.name}")
+                red_list.append(red_item)
+        if field.default != NOT_PROVIDED:
+            data[field.name] = field.default
+            continue
+        elif type(field) == models.CharField:
+            value = ''.join(random.choices(string.ascii_lowercase, k=field.max_length))
+            while value in red_list:
+                value = ''.join(random.choices(string.ascii_lowercase, k=field.max_length))
+        elif type(field) == models.TextField:
+            value = ''.join(random.choices(string.ascii_lowercase, k=10000))
+        elif type(field) == models.IntegerField or type(field) == models.BigIntegerField:
+            value = random.randint(1000000, 1000000000)
+        elif type(field) == models.FloatField or type(field) == models.DecimalField:
+            value = float(random.randint(1000000, 1000000000))
+        elif type(field) == models.BooleanField:
+            choice = random.randint(1, 2)
+            value = True if choice == 1 else False
+        elif type(field) == models.DateTimeField or type(field) == models.TimeField:
+            value = timezone.now()
+        data[field.name] = value
+    obj = model.objects.create(**data)
+    return obj
 
 
 def choices_creator(model):

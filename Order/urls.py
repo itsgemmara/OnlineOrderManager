@@ -17,11 +17,10 @@ material_router = DefaultRouter()
 material_router.register(r'material-view-set', MaterialViewSet, basename='materials')
 
 products_router = DefaultRouter()
-products_router.register(r'products-view-set', ProductViewSet, basename='productss')
+products_router.register(r'products-view-set', ProductViewSet, basename='products')
 
 urlpatterns = [
     path('', include(table_router.urls)),
-    path('order/', include(order_router.urls)),
     path('create-order/', CreateOrderView.as_view()),
     path('pay/', include(pay_router.urls)),
     path('material/', include(material_router.urls)),

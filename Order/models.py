@@ -1,4 +1,5 @@
 from django.db import models
+from django.contrib.auth.models import User
 
 
 class Category(models.Model):
@@ -22,7 +23,7 @@ class Menu(models.Model):
 
 
 class Table(models.Model):
-    name = models.CharField('نام', max_length=1000)
+    name = models.CharField('نام', max_length=1000, unique=True)
     created_at = models.DateTimeField('تاریخ ثبت', auto_now=True)
     info = models.TextField('اطلاعات')
     is_active = models.BooleanField('فعال', default=True)
@@ -73,3 +74,12 @@ class Product(models.Model):
     order = models.OneToOneField(Menu, on_delete=models.DO_NOTHING, verbose_name='نام سفارش')
     materials = models.TextField('مواد لازم', )
     description = models.TextField('طرز تهیه', null=True, blank=True)
+
+#
+# class M(models.Model):
+#     name = models.CharField(max_length=10000, unique=True)
+#     text = models.TextField()
+#     bool2 = models.BooleanField()
+#     date1 = models.DateTimeField(auto_created=True)
+#     time = models.TimeField()
+#

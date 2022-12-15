@@ -2,11 +2,11 @@ from rest_framework.response import Response
 from rest_framework import generics, mixins, views
 from rest_framework.decorators import action
 from rest_framework import viewsets
-from  django.core.exceptions import ValidationError
+from django.core.exceptions import ValidationError
 
 from .serializers import *
 from .models import Order, Table, Menu, Category, Material, Product
-from .utils import create_factor
+from .utils import create_factor, test_model_object_creator
 from Filters import filters, utils, serializers as filter_serializers
 
 
@@ -15,7 +15,7 @@ class TableViewSet(viewsets.ModelViewSet):
     """
     General ViewSet description
 
-    list: List table
+    list: List tables
 
     retrieve: Retrieve table
 
@@ -24,6 +24,10 @@ class TableViewSet(viewsets.ModelViewSet):
     create: Create table
 
     partial_update: Patch table
+
+    destroy: delete table
+
+    change_table_is_active: change tables is_active boolean.
 
     """
 
@@ -42,28 +46,6 @@ class TableViewSet(viewsets.ModelViewSet):
         return TableSerializer
 
     @action(detail=False, methods=['post', ])
-    def set_table_is_payed(self, r):
-        serializer = UpdateTableIsPayedSerializer(data=self.request.data)
-        serializer.is_valid(raise_exception=True)
-        is_payed = serializer.validated_data["is_payed"]
-        table = serializer.validated_data["table"]
-        if is_payed:
-            try:
-                table = Table.objects.get(name=table)
-            except:
-                raise ValidationError(f'cant get obj with the given table: ({table})')
-            if table.is_payed:
-                raise ValidationError('table is already payed.')
-            try:
-                table.is_payed = True
-                table.save()
-            except:
-                raise ValidationError('cant change is_payed field to true.')
-        else:
-            raise ValidationError('selecting the box is required')
-        return Response('done', status=200)
-
-    @action(detail=False, methods=['post', ])
     def change_table_is_active(self, r):
         serializer = UpdateTableIsActiveSerializer(data=self.request.data)
         serializer.is_valid(raise_exception=True)
@@ -78,13 +60,13 @@ class TableViewSet(viewsets.ModelViewSet):
                 table.is_active = True
                 table.save()
             except:
-                raise ValidationError('cant change is_payed field to true.')
+                raise ValidationError('cant change is_active field to true.')
         elif key == 'de':
             try:
                 table.is_active = False
                 table.save()
             except:
-                raise ValidationError('cant change is_payed field to false.')
+                raise ValidationError('cant change is_active field to false.')
         return Response('done', status=200)
 
     @action(detail=False, methods=['post', ])
@@ -109,7 +91,7 @@ class TableViewSet(viewsets.ModelViewSet):
         serializer = TableFactorSerializer(data=self.request.data)
         serializer.is_valid(raise_exception=True)
         table = serializer.validated_data["table"]
-        _products = Order.objects.filter(table=table, is_payed=False)
+        _products = Order.objects.filter(table=table, is_active=False)
         products = list()
         for i in _products:
             products.append(i.product)
@@ -119,6 +101,7 @@ class TableViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['get', ])
     def get_active_tables(self, r):
+        test_model_object_creator(Menu)
         try:
             active_tables = Table.objects.filter(is_active=True)
         except:
@@ -127,7 +110,6 @@ class TableViewSet(viewsets.ModelViewSet):
         for i in active_tables:
             response.append(i.name)
         return Response(response, status=200)
-
 
 
 class OrderViewSet(viewsets.ModelViewSet):
@@ -272,6 +254,20 @@ class PayViewSet(mixins.RetrieveModelMixin,
                    mixins.DestroyModelMixin,
                    mixins.ListModelMixin,
                    viewsets.GenericViewSet):
+    """
+    General ViewSet description
+
+    list: List pay
+
+    retrieve: Retrieve pay
+
+    update: Update pay
+
+    create: Create pay
+
+    partial_update: Patch pay
+
+    """
 
     queryset = Pay.objects.all()
     serializer_class = PaySerializer
@@ -296,7 +292,7 @@ class PayViewSet(mixins.RetrieveModelMixin,
             table = Table.objects.get(name=table)
         except:
             raise ValidationError(f'Cant get obj with the given table: ({table})')
-        _products = Order.objects.filter(table=table, is_payed=False)
+        _products = Order.objects.filter(table=table, is_active=False)
         products = list()
         for i in _products:
             products.append(i.product)
