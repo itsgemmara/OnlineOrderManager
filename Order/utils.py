@@ -84,7 +84,7 @@ def create_factor(products):
         except:
             raise ValidationError(f'cant get menu obj with the given name = ({i})')
         price = product.price
-        total_price += int(price)
+        total_price += float(price)
         if product.name not in factor:
             count = 0
         else:

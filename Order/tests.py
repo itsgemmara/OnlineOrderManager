@@ -5,7 +5,7 @@ from rest_framework import status
 from django.core.files.uploadedfile import SimpleUploadedFile
 
 from .models import Table, Category, Material, Menu, Order, Pay, Product
-from .utils import test_model_object_creator
+from .utils import test_model_object_creator, choices_creator, create_factor
 
 # --------------------------------------------database------------------------------------------------------------------
 
@@ -136,8 +136,29 @@ class UtilsTestCase(APITestCase):
     def setUp(self):
         self.table = Table.objects.create(name='table_name_setup', info='table info setup', )
         self.table2 = Table.objects.create(name='table_name_setup2', info='table info setup', )
+        self.product = test_model_object_creator(Menu)
+        self.product2 = test_model_object_creator(Menu)
 
     def test_create_choices(self):
-        pass
+        test_model = Table
+        choices = choices_creator(Table)
+        c = ((self.table.name, self.table.name),
+             (self.table2.name, self.table2.name))
+        self.assertEqual(c, choices)
+
+    def test_create_factor(self):
+        products = [self.product.name, self.product2.name]
+        factor = create_factor(products)
+        f = dict()
+        f[self.product.name] = {'price': float(self.product.price), 'count': 1}
+        f[self.product2.name] = {'price': float(self.product2.price), 'count': 1}
+        total_price = self.product2.price + self.product.price
+        result = {"factor": f, 'total_price': total_price}
+        self.assertEqual(factor, result)
+
+
+
+
+
 
 

@@ -13,7 +13,7 @@ class Category(models.Model):
 class Menu(models.Model):
     name = models.CharField('نام', max_length=1000)
     cat = models.ForeignKey(Category, on_delete=models.DO_NOTHING, verbose_name='دسته بندی')
-    price = models.CharField('قیمت', max_length=1000)
+    price = models.FloatField('قیمت')
     created_at = models.DateTimeField('تاریخ ثبت', auto_now=True)
     info = models.TextField('اطلاعات')
     image = models.ImageField('عکس', null=True, blank=True)
